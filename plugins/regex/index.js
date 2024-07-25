@@ -142,7 +142,7 @@ regCmd('t', (arg, reg, e, reply) => {
 
     if (tp == 'all') {
         let tellallMsg = buildString(ms, reg, e).trim()
-       // console.log(tellallMsg)
+        // console.log(tellallMsg)
         if (tellallMsg.length > JandQuitConfig.chatMaxLength + ms.replace(/\$1/g, '').length) {
             tellallMsg = '[群聊]聊天长度过长，将不会转发'
         }
@@ -178,7 +178,7 @@ regCmd('addwl', (arg, reg, e, reply) => {
         spark.mc.addXbox(e.user_id, xboxid);
         reply(xboxid + '绑定成功', true);
         if (command[1] == 'true') {
-            mc.runcmd('allowlist add "' + xboxid + '"');
+            mc.runcmdEx('allowlist add "' + xboxid + '"');
         }
     }
     else {
@@ -193,7 +193,7 @@ regCmd('remwl', (arg, reg, e, reply) => {
         let xb = spark.mc.getXbox(e.user_id);
         spark.mc.remXboxByQid(e.sender.user_id);
         reply('解绑成功', true);
-        mc.runcmd('allowlist remove "' + xb + '"');
+        mc.runcmdEx('allowlist remove "' + xb + '"');
     }
 });
 
@@ -284,7 +284,7 @@ async function formatMsg(msg) {
                         } else {
                             return '@' + t.data.qq;
                         }
-                    }else{
+                    } else {
                         return '@' + spark.mc.getXbox(t.data.qq);
                     }
                 } catch (error) {
@@ -342,6 +342,20 @@ spark.on('notice.group_decrease', (e) => {
         let xb = spark.mc.getXbox(user_id);
         spark.mc.remXboxByQid(user_id);
         spark.QClient.sendGroupMsg(group_id, `用户${xb}退出群聊，已从白名单移除`)
-        mc.runcmd('allowlist remove "' + xb + '"');
+        mc.runcmdEx('allowlist remove "' + xb + '"');
     }
-})
+});
+spark.on('bot.online', async () => {
+    let list = await spark.QClient.getGroupMemberList(spark.mc.config.group);
+    let xboxs = JSON.parse(spark.getFileHelper('mc').getFile('xbox.json'));
+    list = list.map(i => i.user_id);
+    xboxs = Object.keys(xboxs).map(i => +i);
+    for (let qq of xboxs) {
+        if (!list.includes(qq)) {
+            let xb = spark.mc.getXbox(qq);
+            spark.mc.remXboxByQid(qq);
+            spark.QClient.sendGroupMsg(spark.mc.config.group, `用户${xb}退出群聊，已从白名单移除`)
+            mc.runcmdEx('allowlist remove "' + xb + '"');
+        }
+    };
+});
