@@ -1,22 +1,33 @@
-const { createLogger, format, transports } = require('winston');
-const { combine, timestamp, label, printf } = format;
-const dayjs = require('dayjs');
-const today = dayjs();
-
-const myFormat = printf(({ level, message, label}) => {
-    return `${dayjs().format("YYYY-MM-DD HH:mm:ss")} [${label}] [${ level}] ${message}`;
-  });
-
-function SparkLogger(plugin_name){
-    return createLogger({
-        format: combine(
-            label({ label: plugin_name}),
-            myFormat
-          ),
-        transports: [
-            new transports.Console()
-            //new winston.transports.File({ filename:  `./plugins/sparkbridge2/logs/${today.format("YYYY-MM-DD")}-${}.log` })
-        ]
-    });
+class sparklogger {
+  constructor(name) {
+      this.name = name;
+  }
+  info(msg) {
+      logger.setTitle(this.name);
+      logger.info(msg);
+  }
+  log(msg) {
+      logger.setTitle(this.name);
+      logger.log(msg);
+  }
+  debug(msg) {
+      logger.setTitle(this.name);
+      logger.debug(msg);
+  }
+  warn(msg) {
+      logger.setTitle(this.name);
+      logger.warn(msg);
+  }
+  error(msg) {
+      logger.setTitle(this.name);
+      logger.error(msg);
+  }
+  fatal(msg) {
+      logger.setTitle(this.name);
+      logger.fatal(msg);
+  }
 }
-module.exports ={ getLogger:SparkLogger};
+function SparkLogger(plugin_name) {
+  return new sparklogger(plugin_name);
+}
+module.exports = { getLogger: SparkLogger };
