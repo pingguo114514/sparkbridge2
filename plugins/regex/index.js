@@ -251,53 +251,19 @@ const PRE_CONFIG = {
 _config.initFile('data.json', PRE_CONFIG, false);
 const regexs = JSON5.parse(_config.getFile('data.json'));
 
-async function formatMsg(msg) {
-    const formattedMessages = await Promise.all(msg.map(async (t) => {
-        switch (t.type) {
-            case 'at':
-                try {
-                    if (spark.mc.getXbox(t.data.qq) == undefined) {
-                        const data = await spark.QClient.getGroupMemberInfo(spark.mc.config.group, t.data.qq);
-                        if (data) {
-                            let name
-                            if (data.card == "") {
-                                name = data.nickname;
-                            }
-                            else {
-                                name = data.card;
-                            }
-                            return '@' + name;
-                        } else {
-                            return '@' + t.data.qq;
-                        }
-                    } else {
-                        return '@' + spark.mc.getXbox(t.data.qq);
-                    }
-                } catch (error) {
-                    console.error(error);
-                    return '@' + t.data.qq;
-                }
-            case 'text':
-                return t.data.text;
-            case 'image':
-                return '[图片]';
-            case 'face':
-                return '[表情]';
-        }
-    }));
-
-    return formattedMessages.join('');
+function formatMsg(msg) {
+    return msg.filter(i => i.type == 'text').map(i => i.data.text).join('\n');
 }
 
 //spark.debug = true;
 spark.on('message.group.normal', async (e, reply) => {
     //reply("?")
-    const { raw_message, group_id, user_id } = e;
+    const { message, group_id, user_id } = e;
     //console.log(raw_message, group_id, user_id ,GROUP);
-    const raw = await formatMsg(e.message);
+    if (group_id !== GROUP) return;// 这是你的群吗就format
+    const raw = formatMsg(message);
 
     //console.log(raw);
-    if (group_id !== GROUP) return;
     for (let reg_it in regexs) {
         //console.log(reg_it);
 
