@@ -31,7 +31,6 @@ function getStaticMethods(klass) {
 }
 function exportClass(klass, name) {
     let list = getStaticMethods(klass);
-    logger.info(klass.name);
     ll.exports(() => list, "SparkAPI", name);
     list.forEach(method => {
         ll.exports(klass[method], "SparkAPI", `${name}.${method}`);
