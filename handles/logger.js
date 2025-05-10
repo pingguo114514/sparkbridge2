@@ -3,28 +3,28 @@ class sparklogger {
       this.name = name;
   }
   info(msg) {
-      logger.setTitle(this.name);
-      logger.info(msg);
+      ll_logger.setTitle(this.name);
+      ll_logger.info(msg);
   }
   log(msg) {
-      logger.setTitle(this.name);
-      logger.log(msg);
+      ll_logger.setTitle(this.name);
+      ll_logger.log(msg);
   }
   debug(msg) {
-      logger.setTitle(this.name);
-      logger.debug(msg);
+      ll_logger.setTitle(this.name);
+      ll_logger.debug(msg);
   }
   warn(msg) {
-      logger.setTitle(this.name);
-      logger.warn(msg);
+      ll_logger.setTitle(this.name);
+      ll_logger.warn(msg);
   }
   error(msg) {
-      logger.setTitle(this.name);
-      logger.error(msg);
+      ll_logger.setTitle(this.name);
+      ll_logger.error(msg);
   }
   fatal(msg) {
-      logger.setTitle(this.name);
-      logger.fatal(msg);
+      ll_logger.setTitle(this.name);
+      ll_logger.fatal(msg);
   }
 }
 function SparkLogger(plugin_name) {

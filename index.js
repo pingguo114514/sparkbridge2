@@ -6,6 +6,7 @@ const fhelper = require('./handles/file');
 const lg = require('./handles/logger');
 const Spark = require("./spark");
 const PLUGIN_ROOT_DIR = './plugins/nodejs/sparkbridge2';
+global.ll_logger = logger;
 global.logger = lg.getLogger('sparkbridge2');
 process.on('unhandledRejection', (reason, promise) => {
 
