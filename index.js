@@ -6,7 +6,7 @@ const fhelper = require('./handles/file');
 const lg = require('./handles/logger');
 const Spark = require("./spark");
 const PLUGIN_ROOT_DIR = './plugins/nodejs/sparkbridge2';
-const logger = lg.getLogger('sparkbridge2');
+global.logger = lg.getLogger('sparkbridge2');
 process.on('unhandledRejection', (reason, promise) => {
 
 });
@@ -30,11 +30,11 @@ if (fhelper.exists(PLUGIN_DATA_DIR) == false) fhelper.mkdir(PLUGIN_DATA_DIR);
 console.log(fhelper.read(path.join(__dirname, 'logo.txt')));
 
 let ROOT_FILE_HELPER = new fhelper.FileObj('base');
-ROOT_FILE_HELPER.initFile('config.json', { target: "ws://127.0.0.1:3001", qid: 114514, pwd: '', onebot_mode_v11: true ,ws_type:0,server_port:3001});
+ROOT_FILE_HELPER.initFile('config.json', { target: "ws://127.0.0.1:3001", qid: 114514, pwd: '', onebot_mode_v11: true, ws_type: 0, server_port: 3001 });
 let RAW_CONFIG = ROOT_FILE_HELPER.getFile('config.json');
 const CONFIG = JSON5.parse(RAW_CONFIG);
 
-global.spark = new Spark(CONFIG.ws_type,CONFIG.target,CONFIG.server_port, CONFIG.qid, CONFIG.pwd);
+global.spark = new Spark(CONFIG.ws_type, CONFIG.target, CONFIG.server_port, CONFIG.qid, CONFIG.pwd);
 
 spark.on("event.telemetry.ready", () => {
     const WebConfigBuilder = spark.telemetry.WebConfigBuilder;
@@ -80,13 +80,13 @@ function loadPlugin(_name) {
 
         let pl_info = require('./plugins/' + _name + "/spark.json");
 
-        if(pl_info.loadmode){
-            if(pl_info.loadmode !== 'hybrid'){
-                if(pl_info.loadmode == 'offline' && spark.onBDS){
+        if (pl_info.loadmode) {
+            if (pl_info.loadmode !== 'hybrid') {
+                if (pl_info.loadmode == 'offline' && spark.onBDS) {
                     logger.info(`忽略 ${pl_info.name}，因在BDS模式下无法使用`);
                     return;
                 }
-                if(pl_info.loadmode == 'bds' &&!spark.onBDS){
+                if (pl_info.loadmode == 'bds' && !spark.onBDS) {
                     logger.info(`忽略 ${pl_info.name}，因在非BDS模式下无法使用`);
                     return;
                 }
