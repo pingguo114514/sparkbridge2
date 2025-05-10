@@ -130,7 +130,7 @@ regCmd('t', (arg, reg, e, reply) => {
 
     if (tp == 'all') {
         let tellallMsg = buildString(ms, reg, e).trim()
-       // console.log(tellallMsg)
+        // console.log(tellallMsg)
         if (tellallMsg.length > JandQuitConfig.chatMaxLength + ms.replace(/\$1/g, '').length) {
             tellallMsg = '[群聊]聊天长度过长，将不会转发'
         }
@@ -142,43 +142,44 @@ regCmd('t', (arg, reg, e, reply) => {
             top.tell(buildString(ms, reg, e));
         }
     }
-})
+});
 regCmd('run', (arg, reg, e, reply) => {
     let command = arg;
     let run_str = buildString(command, reg, e).trim();
     let r = mc.runcmdEx(run_str);
-    if (!r.success) {
-        reply(run_str + '执行失败');
-    }
-    else {
-        // 没有
-        reply(r.output.replace(/§[a-zA-Z0-9]/g, ''), true);
-    }
-})
-
+    let reply_str = '';
+    if (!r.success) reply_str = '执行失败';
+    else reply_str = '执行成功';
+    if (r.output.replace(/§[a-zA-Z0-9]/g, '') != '') reply_str += ':' + r.output.replace(/§[a-zA-Z0-9]/g, '');
+    reply(reply_str, true);
+});
 regCmd('addwl', (arg, reg, e, reply) => {
     let command = arg.split(":");
     let xboxid = buildString(command[0], reg, e).trim();
     if (!spark.mc.hasXbox(xboxid) && spark.mc.getXbox(e.user_id) == undefined) {
-        spark.mc.addXbox(e.user_id, xboxid);
-        reply(xboxid + '绑定成功', true);
         if (command[1] == 'true') {
-            mc.runcmd('allowlist add "' + xboxid + '"');
+            let { success, output } = mc.runcmdEx(`allowlist add "${xboxid}"`);
+            if (success) {
+                reply('添加成功', true);
+                spark.mc.addXbox(e.user_id, xboxid);
+            } else reply(`添加失败:${output}`, true);
+        } else {
+            spark.mc.addXbox(e.user_id, xboxid);
+            reply('绑定成功', true);
         }
     }
-    else {
-        reply('绑定失败，请检查是否已经绑定', true);
-    }
-})
-
+    else reply('你已经添加过白名单了', true);
+});
 regCmd('remwl', (arg, reg, e, reply) => {
     //console.log(e);
     //console.log(spark.mc.getXbox(e.sender.user_id));
-    if (spark.mc.getXbox(e.sender.user_id) != undefined) {
-        let xb = spark.mc.getXbox(e.user_id);
-        spark.mc.remXboxByQid(e.sender.user_id);
-        reply('解绑成功', true);
-        mc.runcmd('allowlist remove "' + xb + '"');
+    let xb = spark.mc.getXbox(e.user_id);
+    if (xb != undefined) {
+        let { success, output } = mc.runcmdEx(`allowlist remove "${xb}"`);
+        if (success) {
+            reply('移除成功', true);
+            spark.mc.remXboxByQid(e.user_id);
+        } else reply(`移除失败:${output}`, true);
     }
 });
 
@@ -247,7 +248,7 @@ const PRE_CONFIG = {
     }
 }
 
-_config.initFile('data.json', PRE_CONFIG,false);
+_config.initFile('data.json', PRE_CONFIG, false);
 const regexs = JSON5.parse(_config.getFile('data.json'));
 
 async function formatMsg(msg) {
@@ -269,7 +270,7 @@ async function formatMsg(msg) {
                         } else {
                             return '@' + t.data.qq;
                         }
-                    }else{
+                    } else {
                         return '@' + spark.mc.getXbox(t.data.qq);
                     }
                 } catch (error) {
@@ -320,13 +321,13 @@ spark.on('message.group.normal', async (e, reply) => {
 
 
 spark.on('notice.group_decrease', (e) => {
-
     const { self_id, user_id, group_id } = e;
     if (group_id != spark.mc.config.group || user_id == self_id) return
     if (spark.mc.getXbox(user_id) != undefined) {
         let xb = spark.mc.getXbox(user_id);
         spark.mc.remXboxByQid(user_id);
         spark.QClient.sendGroupMsg(group_id, `用户${xb}退出群聊，已从白名单移除`)
-        mc.runcmd('allowlist remove "' + xb + '"');
+        const { output, success } = mc.runcmdEx(`allowlist remove ${xb}`);
+        if (!success) spark.QClient.sendGroupMsg(group_id, `移除失败:${output}`);
     }
-})
+});
