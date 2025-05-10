@@ -14,7 +14,7 @@ class Qadapter {
     eventEmitter = new EventEmitter();
     //eventKeyMap = new Map();
     logger = logger.getLogger('Qadapter')
-    constructor(ws_type,target,port, qid, pwd, customs) {
+    constructor(ws_type, target, port, qid, pwd, customs) {
         this.target = target;
         this.qid = qid;
         this.pwd = pwd;
@@ -24,7 +24,7 @@ class Qadapter {
     }
     login() {
         //console.log(this.pwd);
-        if(this.ws_type == 0){
+        if (this.ws_type == 0) {
             this.client = new WebSocket(this.target, { headers: { Authorization: 'Bearer ' + this.pwd } });// 
             this.client.on('open', () => {
                 this.logger.info('登录成功，开始处理事件');
@@ -36,7 +36,16 @@ class Qadapter {
                 console.log(e);
             });
             this.client.on('close', (e) => {
-                this.logger.warn(`websocket 已经断开,将在 ${(new Date(Date.now() + boom())).toISOString()} 尝试重连`);
+                this.logger.warn(`websocket 已经断开,将在 ${(new Date(Date.now() + boom())).toLocaleString('zh-CN', {
+                    timeZone: 'Asia/Shanghai',
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false
+                })} 尝试重连`);
                 setTimeout(() => {
                     this.login()
                 }, boom());
@@ -56,28 +65,28 @@ class Qadapter {
                 this.eventEmitter.emit('gocq.pack', msg_obj);
             })
         }
-        else if(this.ws_type == 1){
-            this.client = new WebSocket.Server({ port:this.port});
+        else if (this.ws_type == 1) {
+            this.client = new WebSocket.Server({ port: this.port });
 
 
-            this.logger.info('Websocket 服务器 于 ws://localhost:'+this.port+" 开启");
+            this.logger.info('Websocket 服务器 于 ws://localhost:' + this.port + " 开启");
 
             // 监听连接事件
-            this.client.on('connection', (ws,req) => {
+            this.client.on('connection', (ws, req) => {
                 this.logger.info(`${req.headers.host}:${req.headers.port} 发起连接`);
 
                 // 打印客户端的请求头信息
-                if(spark.debug) console.log('Client request headers:', req.headers);
+                if (spark.debug) console.log('Client request headers:', req.headers);
 
-                if(req.headers.authorization != `Bearer ${this.pwd}` && spark.debug == false){
+                if (req.headers.authorization != `Bearer ${this.pwd}` && spark.debug == false) {
                     this.logger.info('Client 未提供正确的授权头');
                     ws.send('Client 未提供正确的授权头');
                     ws.close();
                     return;
                 }
 
-                if (req.headers['x-self-id'] == this.qid){
-                    this.logger.info('WebSocket 服务器 已接收到来自 '+"["+this.qid+"]"+' 的连接');
+                if (req.headers['x-self-id'] == this.qid) {
+                    this.logger.info('WebSocket 服务器 已接收到来自 ' + "[" + this.qid + "]" + ' 的连接');
                     this.eventEmitter.emit('bot.online');
                 }
 
@@ -120,7 +129,7 @@ class Qadapter {
                 console.log('WebSocket server closed');
             });
         }
-        
+
     }
     on(evk, func) {
         if (spark.debug) console.log('触发on', evk);
@@ -133,7 +142,7 @@ class Qadapter {
         // PS：Nodejs中，监听器数量默认限制为10，否则会警告。设置为0才是无限个
 
         this.eventEmitter.setMaxListeners(0);
-    
+
     }
 
     emit(evk, ...arg) {
@@ -154,9 +163,9 @@ class Qadapter {
             pack = JSON.stringify(pack);
         }
         if (spark.debug) console.log("send-->", pack);
-        if(this.ws_type == 0){
+        if (this.ws_type == 0) {
             this.client.send(pack);
-        }else if(this.ws_type == 1){
+        } else if (this.ws_type == 1) {
             this.client.clients.forEach((client) => {
                 if (client.readyState === WebSocket.OPEN) {
                     client.send(pack);
