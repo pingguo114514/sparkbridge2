@@ -6,8 +6,8 @@ const PLUGIN_DATA_DIR = './plugins/sparkbridge2';
 class Spark {
     QClient;
     debug = false;
-    constructor(ws_type,target,port,qid, pwd,customs) {
-        this.QClient = new adapter(ws_type,target,port,qid, pwd,customs);
+    constructor(ws_type, ws, ws_reverse, qid, pwd, ssl) {
+        this.QClient = new adapter(ws_type, ws, ws_reverse, qid, pwd, ssl);
         this.QClient.login();
     }
     getLogger(header){

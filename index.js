@@ -31,11 +31,24 @@ if (fhelper.exists(PLUGIN_DATA_DIR) == false) fhelper.mkdir(PLUGIN_DATA_DIR);
 console.log(fhelper.read(path.join(__dirname, 'logo.txt')));
 
 let ROOT_FILE_HELPER = new fhelper.FileObj('base');
-ROOT_FILE_HELPER.initFile('config.json', { target: "ws://127.0.0.1:3001", qid: 114514, pwd: '', onebot_mode_v11: true, ws_type: 0, server_port: 3001 });
-let RAW_CONFIG = ROOT_FILE_HELPER.getFile('config.json');
+ROOT_FILE_HELPER.initFile('config.json', {
+    qid: 114514,
+    pwd: '',
+    onebot_mode_v11: true,
+    ws_type: 0,
+    ws: {
+        url: 'ws://127.0.0.1:3001'
+    },
+    ws_reverse: {
+        host: '0.0.0.0',
+        port: 3001,
+        ssl: false
+    }
+});
+let RAW_CONFIG = ROOT_FILE_HELPER.getFile('config.json'), ssl;
 const CONFIG = JSON5.parse(RAW_CONFIG);
-
-global.spark = new Spark(CONFIG.ws_type, CONFIG.target, CONFIG.server_port, CONFIG.qid, CONFIG.pwd);
+if (CONFIG.ws_type == 1 && CONFIG.ws_reverse.ssl) ssl = { key: ROOT_FILE_HELPER.getFile('key.pem'), cert: ROOT_FILE_HELPER.getFile('cert.pem') };
+global.spark = new Spark(CONFIG.ws_type, CONFIG.ws, CONFIG.ws_reverse, CONFIG.qid, CONFIG.pwd, ssl);
 
 spark.on("event.telemetry.ready", () => {
     const WebConfigBuilder = spark.telemetry.WebConfigBuilder;

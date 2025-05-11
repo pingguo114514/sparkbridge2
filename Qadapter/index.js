@@ -1,4 +1,6 @@
 const { WebSocket } = require('ws');
+const https = require('https');
+const http = require('http');
 const EventEmitter = require("events");
 const logger = require('../handles/logger');
 const { text } = require('../handles/msgbuilder');
@@ -14,25 +16,25 @@ class Qadapter {
     eventEmitter = new EventEmitter();
     //eventKeyMap = new Map();
     logger = logger.getLogger('Qadapter')
-    constructor(ws_type, target, port, qid, pwd, customs) {
-        this.target = target;
+    constructor(ws_type, ws, ws_reverse, qid, pwd, ssl) {
+        this.ws = ws;
         this.qid = qid;
         this.pwd = pwd;
         this.ws_type = ws_type;
-        this.port = port;
-        this.customs = customs;
+        this.ws_reverse = ws_reverse;
+        this.ssl = ssl;
     }
     login() {
         //console.log(this.pwd);
         if (this.ws_type == 0) {
-            this.client = new WebSocket(this.target, { headers: { Authorization: 'Bearer ' + this.pwd } });// 
+            this.client = new WebSocket(this.ws.url, { headers: { Authorization: 'Bearer ' + this.pwd } });// 
             this.client.on('open', () => {
                 this.logger.info('登录成功，开始处理事件');
                 this.eventEmitter.emit('bot.online');
             });
             this.client.on('error', (e) => {
-                this.logger.error('websocket 故障！！');
-                this.logger.error('请检查连接到go-cqhttp的密钥是否填写正确');
+                this.logger.error('连接错误');
+                this.logger.error('请检查地址是否填写正确');
                 console.log(e);
             });
             this.client.on('close', (e) => {
@@ -66,11 +68,24 @@ class Qadapter {
             })
         }
         else if (this.ws_type == 1) {
-            this.client = new WebSocket.Server({ port: this.port });
-
-
-            this.logger.info('Websocket 服务器 于 ws://localhost:' + this.port + " 开启");
-
+            const createServer = (ssl) => {
+                try {
+                    const server = ssl
+                        ? https.createServer({
+                            cert: this.ssl.cert,
+                            key: this.ssl.key
+                        })
+                        : http.createServer();
+                    this.client = new WebSocket.Server({ server });
+                    server.listen(this.ws_reverse.port, this.ws_reverse.host, () => {
+                        const protocol = ssl ? 'wss' : 'ws';
+                        this.logger.info(`Websocket 服务器 于 ${protocol}://${this.ws_reverse.host}:${this.ws_reverse.port}/ 开启`);
+                    });
+                } catch (err) {
+                    this.logger.error(`初始化错误: ${err.message}`);
+                }
+            };
+            createServer(this.ws_reverse.ssl);
             // 监听连接事件
             this.client.on('connection', (ws, req) => {
                 this.logger.info(`${req.headers.host}:${req.headers.port} 发起连接`);

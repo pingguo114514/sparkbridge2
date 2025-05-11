@@ -24,9 +24,9 @@ class FileObj {
     initFile(fname, init_obj, autoUpdate = true) {
 
         let filePath = PLUGIN_DATA_DIR + '/' + this.pname + '/' + fname;
-    
+
         // 检查文件是否存在
-        if (!exists(filePath)) {
+        if (!this.exists(fname)) {
             // 文件不存在，直接创建并写入初始对象
             writeTo(filePath, JSON.stringify(init_obj, null, 4));
         } else {
@@ -35,7 +35,7 @@ class FileObj {
             }
             // 文件存在，读取内容
             const existingData = JSON.parse(read(filePath));
-    
+
             // 遍历初始对象，检查现存文件中的项是否缺失
             let updated = false;
             for (const key in init_obj) {
@@ -44,23 +44,25 @@ class FileObj {
                     updated = true;
                 }
             }
-    
+
             // 如果有更新，重新写入文件
             if (updated) {
                 writeTo(filePath, JSON.stringify(existingData, null, 4));
             }
         }
     }
-    
+    exists(fname) {
+        return exists(PLUGIN_DATA_DIR + '/' + this.pname + '/' + fname)
+    }
     getFile(fname) {
-        if (exists(PLUGIN_DATA_DIR + '/' + this.pname) == false) {
+        if (!exists(PLUGIN_DATA_DIR + '/' + this.pname) || !this.exists(fname)) {
             return null;
         } else {
             return read(PLUGIN_DATA_DIR + '/' + this.pname + '/' + fname)
         }
     }
     getBuffer(fname) {
-        if (exists(PLUGIN_DATA_DIR + '/' + this.pname) == false) {
+        if (!exists(PLUGIN_DATA_DIR + '/' + this.pname) || !this.exists(fname)) {
             return null;
         } else {
             return fs.readFileSync(PLUGIN_DATA_DIR + '/' + this.pname + '/' + fname)
