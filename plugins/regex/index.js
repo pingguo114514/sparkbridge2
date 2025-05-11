@@ -148,9 +148,13 @@ regCmd('run', (arg, reg, e, reply) => {
     let run_str = buildString(command, reg, e).trim();
     let r = mc.runcmdEx(run_str);
     let reply_str = '';
-    if (!r.success) reply_str = '执行失败';
-    else reply_str = '执行成功';
-    if (r.output.replace(/§[a-zA-Z0-9]/g, '') != '') reply_str += ':' + r.output.replace(/§[a-zA-Z0-9]/g, '');
+    if (!r.success) {
+        reply_str = '执行失败';
+        if (r.output.replace(/§[a-zA-Z0-9]/g, '') != '') reply_str += ':' + r.output.replace(/§[a-zA-Z0-9]/g, '');
+    } else {
+        reply_str = r.output.replace(/§[a-zA-Z0-9]/g, '');
+        if (reply_str == '') reply_str = '执行成功';
+    }
     reply(reply_str, true);
 });
 regCmd('addwl', (arg, reg, e, reply) => {
