@@ -1,14 +1,19 @@
 const _config = spark.getFileHelper('JandLandCmsg');
 const JSON5 = require('json5');
 
-function formatMsg(msg) {
-    const formattedMessages =msg.map((t) => {
+async function formatMsg(msg) {
+    const formattedMessages = await Promise.all(msg.map(async (t) => {
         switch (t.type) {
             case 'at':
-                if (spark.mc.getXbox(t.data.qq) == undefined) {
+                try {
+                    let info = await spark.QClient.getGroupMemberInfo(spark.mc.config.group, t.data.qq);
+                    let name = info.card != '' ? info.card : info.nickname;
+                    const xbox = spark.mc.getXbox(t.data.qq);
+                    if (xbox && !name.includes(xbox)) name += ` (${xbox})`;
+                    return '@' + name;
+                } catch (error) {
+                    console.error(error);
                     return '@' + t.data.qq;
-                }else{
-                    return '@' + spark.mc.getXbox(t.data.qq);
                 }
             case 'text':
                 return t.data.text;
@@ -16,8 +21,20 @@ function formatMsg(msg) {
                 return '[图片]';
             case 'face':
                 return '[表情]';
+            case 'record':
+                return '[语音]';
+            case 'video':
+                return '[视频]';
+            case 'location':
+                return '[位置]';
+            case 'share':
+                return '[链接]';
+            case 'forward':
+                return '[合并转发]';
+            default:
+                return ''; // 处理未知类型
         }
-    });
+    }));
     return formattedMessages.join('');
 }
 
@@ -35,7 +52,7 @@ _config.initFile('config.json', {
     // chatShield: []
 });
 
-const  WebConfigBuilder   = spark.telemetry.WebConfigBuilder;
+const WebConfigBuilder = spark.telemetry.WebConfigBuilder;
 
 
 _config.initFile('lang.json', {
@@ -51,22 +68,22 @@ const config = JSON5.parse(_config.getFile('config.json'));
 const lang = JSON5.parse(_config.getFile('lang.json'));
 
 let wbc_2 = new WebConfigBuilder("JandLandCmsg");
-wbc_2.addSwitch("join",config.switch.join,"是否开启加入提示");
-wbc_2.addSwitch("left",config.switch.left,"是否开启离开提示");
-wbc_2.addSwitch("chat_group",config.switch.chat.group,"是否转发消息到群聊");
-wbc_2.addSwitch("chat_server",config.switch.chat.server,"是否转发消息到服务器（默认为关闭，默认的正则表达式附带了chat xxxx的正则）");
-wbc_2.addNumber("chatMaxLength",config.chatMaxLength,"聊天最大字数长度");
+wbc_2.addSwitch("join", config.switch.join, "是否开启加入提示");
+wbc_2.addSwitch("left", config.switch.left, "是否开启离开提示");
+wbc_2.addSwitch("chat_group", config.switch.chat.group, "是否转发消息到群聊");
+wbc_2.addSwitch("chat_server", config.switch.chat.server, "是否转发消息到服务器（默认为关闭，默认的正则表达式附带了chat xxxx的正则）");
+wbc_2.addNumber("chatMaxLength", config.chatMaxLength, "聊天最大字数长度");
 // wbc_2.addEditArray("chatShield",config.chatShield,"聊天屏蔽词语");
 spark.emit("event.telemetry.pushconfig", wbc_2);
 
-spark.on("event.telemetry.updateconfig_JandLandCmsg",(p,k,v)=>{
-    switch(k){
+spark.on("event.telemetry.updateconfig_JandLandCmsg", (p, k, v) => {
+    switch (k) {
         case "join":
             config.switch.join = v;
             break;
         case 'left':
             config.switch.left = v;
-            break; 
+            break;
         case 'chat_group':
             config.switch.chat.group = v;
             break;
@@ -80,19 +97,19 @@ spark.on("event.telemetry.updateconfig_JandLandCmsg",(p,k,v)=>{
             config.chatShield = v;
             break;
     }
-    _config.updateFile("config.json",config);
+    _config.updateFile("config.json", config);
 })
 
 
 
 let wbc_1 = new WebConfigBuilder("JandLandCmsg_lang");
-wbc_1.addText("join",lang.join,"加入服务器向群聊中发送的消息");
-wbc_1.addText("left",lang.left,'离开服务器向群聊中发送的消息');
-wbc_1.addText("chat_group",lang.chat.group,"发送到群聊的聊天信息格式");
-wbc_1.addText('chat_server',lang.chat.server,"发送到服务器的聊天信息格式");
+wbc_1.addText("join", lang.join, "加入服务器向群聊中发送的消息");
+wbc_1.addText("left", lang.left, '离开服务器向群聊中发送的消息');
+wbc_1.addText("chat_group", lang.chat.group, "发送到群聊的聊天信息格式");
+wbc_1.addText('chat_server', lang.chat.server, "发送到服务器的聊天信息格式");
 spark.emit("event.telemetry.pushconfig", wbc_1);
-spark.on("event.telemetry.updateconfig_JandLandCmsg_lang",(p,k,v)=>{
-    switch(k){
+spark.on("event.telemetry.updateconfig_JandLandCmsg_lang", (p, k, v) => {
+    switch (k) {
         case 'join':
             lang.join = v;
             break;
@@ -106,7 +123,7 @@ spark.on("event.telemetry.updateconfig_JandLandCmsg_lang",(p,k,v)=>{
             lang.chat.server = v;
             break;
     }
-    _config.updateFile("lang.json",lang);
+    _config.updateFile("lang.json", lang);
 })
 
 
@@ -130,7 +147,7 @@ spark.Cmd.regPlaceHolder('USER_QID', e => {
 spark.Cmd.regPlaceHolder('USER_XBOXID', e => {
     //console.log(e);
     const qid = e.user_id;
-   
+
     if (spark.mc.getXbox(qid) == undefined) {
         //console.log(e.card);
         return e.nickname; //获取card有时候是空的，用nickname代替
@@ -165,7 +182,7 @@ const GROUP_ID = spark.mc.config.group;
 
 if (config.switch.join) {
     spark.mc.on('onJoin', (player) => {
-        if(player.isSimulatedPlayer()){
+        if (player.isSimulatedPlayer()) {
             return;
         }
         spark.QClient.sendGroupMsg(GROUP_ID, spark.Cmd.buildString(lang.join, [], player));
@@ -179,21 +196,19 @@ if (config.switch.left) {
 
 if (config.switch.chat.group) {
     spark.mc.on('onChat', (player, msg) => {
-        if(msg.length > config.chatMaxLength){
+        if (msg.length > config.chatMaxLength) {
             player.tell('聊天长度过长，将不会转发');
             return;
         }
-
         spark.QClient.sendGroupMsg(GROUP_ID, spark.Cmd.buildString(lang.chat.group, [], player, msg));
     });
 }
 
 if (config.switch.chat.server) {
-    
     spark.on('message.group.normal', async (e) => {
         if (e.group_id !== GROUP_ID) return;
-        let msg = formatMsg(e.message);
-   //     console.log(spark.Cmd.buildString(lang.chat.server, [], e.sender, msg));
+        let msg = await formatMsg(e.message);
+        //     console.log(spark.Cmd.buildString(lang.chat.server, [], e.sender, msg));
         mc.broadcast(spark.Cmd.buildString(lang.chat.server, [], e.sender, msg));
     });
 }
