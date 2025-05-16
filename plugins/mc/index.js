@@ -1,5 +1,6 @@
 const EventEmitter = require("events");
 const JSON5 = require('json5');
+const BiMap = require('../../handles/BiMap');
 const _config = spark.getFileHelper('mc');
 
 _config.initFile('config.json', {
@@ -16,7 +17,7 @@ function convertArrayToNumbersSafe(arr) {
     });
 }
 var config = JSON5.parse(_config.getFile('config.json'));
-var xboxs = JSON.parse(_config.getFile('xbox.json'));
+var xboxs = BiMap.fromJSON(_config.getFile('xbox.json'));
 
 const WebConfigBuilder = spark.telemetry.WebConfigBuilder;
 let wbc = new WebConfigBuilder("mc");
@@ -54,34 +55,29 @@ mc.listen('onJoin', (p) => {
 });
 
 function getXbox(qid) {
-    return xboxs[qid];
+    return xboxs.getByKey(qid);
 }
 
 function addXbox(qid, xbox) {
-    xboxs[qid] = xbox;
-    _config.updateFile('xbox.json', xboxs);
+    xbox.set(qid, xbox);
+    _config.updateFile('xbox.json', xboxs.toObject());
 }
 
 function hasXbox(xboxid) {
-    return Object.values(xboxs).includes(xboxid);
+    return xboxs.hasValue(xboxid);
 }
 
 function remXboxByName(xbox) {
-    let t = Object.values(xboxs);
-    if (t.includes(xbox)) {
-        let num = t.indexOf(xbox);
-        delete xboxs[Object.keys(xboxs)[num]];
-        _config.updateFile('xbox.json', xboxs);
-    }
+    xboxs.deleteByValue(xbox);
+    _config.updateFile('xbox.json', xboxs.toObject());
 }
 
 function remXboxByQid(qid) {
-    if (xboxs[qid] == undefined) return;
-    delete xboxs[qid];
-    _config.updateFile('xbox.json', xboxs);
+    xboxs.deleteByKey(qid);
+    _config.updateFile('xbox.json', xboxs.toObject());
 }
 function getQQByXbox(xbox) {
-    return Object.keys(xboxs).find(key => xboxs[key] === xbox);
+    return xboxs.getByValue(xbox);
 }
 
 
