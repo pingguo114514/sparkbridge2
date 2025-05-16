@@ -10,27 +10,27 @@ _config.initFile('config.json', {
 _config.initFile('xbox.json', {});
 
 function convertArrayToNumbersSafe(arr) {
-  return arr.map(item => {
-    const number = Number(item);
-    return isNaN(number) ? 0 : number;
-  });
+    return arr.map(item => {
+        const number = Number(item);
+        return isNaN(number) ? 0 : number;
+    });
 }
 var config = JSON5.parse(_config.getFile('config.json'));
 var xboxs = JSON.parse(_config.getFile('xbox.json'));
 
-const  WebConfigBuilder   = spark.telemetry.WebConfigBuilder;
+const WebConfigBuilder = spark.telemetry.WebConfigBuilder;
 let wbc = new WebConfigBuilder("mc");
-wbc.addNumber("group",config.group,"监听的群聊");
-wbc.addEditArray("admins",config.admins,"管理员列表（请仅填入数字）");
+wbc.addNumber("group", config.group, "监听的群聊");
+wbc.addEditArray("admins", config.admins, "管理员列表（请仅填入数字）");
 spark.emit("event.telemetry.pushconfig", wbc);
 
-spark.on("event.telemetry.updateconfig_mc",(plname,K,newV)=>{
+spark.on("event.telemetry.updateconfig_mc", (plname, K, newV) => {
     let v = newV;
-    if(K == 'admins'){
+    if (K == 'admins') {
         v = convertArrayToNumbersSafe(newV);
     }
     config[K] = v;
-    _config.updateFile("config.json",config);
+    _config.updateFile("config.json", config);
 })
 
 spark.setOwnProperty('mc', {});
@@ -53,7 +53,7 @@ mc.listen('onJoin', (p) => {
     spark.mc.emit('onJoin', p);
 });
 
-function getXbox(qid){
+function getXbox(qid) {
     return xboxs[qid];
 }
 
@@ -62,7 +62,7 @@ function addXbox(qid, xbox) {
     _config.updateFile('xbox.json', xboxs);
 }
 
-function hasXbox(xboxid){
+function hasXbox(xboxid) {
     return Object.values(xboxs).includes(xboxid);
 }
 
