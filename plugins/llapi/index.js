@@ -21,7 +21,18 @@ ll.exports((type) => {
 }, "SparkAPI", "GetInfo")
 ll.exports((data) => spark.QClient.sendWSPack(data), "SparkAPI", "sendWSPack");//直接spark.QClient.sendWSPack会报错
 ll.exports(spark.QClient.sendGroupMsg, "SparkAPI", "sendGroupMsg");
-
+ll.export(() => ['remXboxByName',
+    'addXbox',
+    'remXboxByQid',
+    'getXbox',
+    'hasXbox',
+    'getQQByXbox'], 'SparkAPI', 'mc');
+ll.exports(spark.mc.remXboxByName, 'SparkAPI', 'mc.remXboxByName');
+ll.exports(spark.mc.addXbox, 'SparkAPI', 'mc.addXbox');
+ll.exports(spark.mc.remXboxByQid, 'SparkAPI', 'mc.remXboxByQid');
+ll.exports(spark.mc.getXbox, 'SparkAPI', 'mc.getXbox');
+ll.exports(spark.mc.hasXbox, 'SparkAPI', 'mc.hasXbox');
+ll.exports(spark.mc.getQQByXbox, 'SparkAPI', 'mc.getQQByXbox');
 function getStaticMethods(klass) {
     return Object.getOwnPropertyNames(klass)
         .filter(prop => typeof klass[prop] === 'function'
@@ -29,12 +40,12 @@ function getStaticMethods(klass) {
             && prop !== 'name'
             && prop !== 'prototype');
 }
-function exportClass(klass, name) {
+function exportStaticClass(klass, name) {
     let list = getStaticMethods(klass);
     ll.exports(() => list, "SparkAPI", name);
     list.forEach(method => {
         ll.exports(klass[method], "SparkAPI", `${name}.${method}`);
     });
 }
-exportClass(msgbuilder, 'msgbuilder');
-exportClass(packbuilder, 'packbuilder');
+exportStaticClass(msgbuilder, 'msgbuilder');
+exportStaticClass(packbuilder, 'packbuilder');

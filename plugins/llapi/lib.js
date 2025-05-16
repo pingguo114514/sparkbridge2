@@ -5,12 +5,11 @@ function importClass(name) {
     list.forEach(funcname => res[funcname] = ll.imports("SparkAPI", `${name}.${funcname}`));
     return res;
 }
-const msgbuilder = importClass('msgbuilder'), packbuilder = importClass('packbuilder');
+let mc = importClass('mc')
+mc['config'] = ll.imports("SparkAPI", "GetInfo")('spark.mc.config')
 module.exports = {
     spark: {
-        mc: {
-            config: ll.imports("SparkAPI", "GetInfo")('spark.mc.config')
-        },
+        mc: mc,
         on: (event, callback) => {
             let eventId = GetEventID();
             ll.exports(callback, event, eventId);
@@ -22,6 +21,6 @@ module.exports = {
             sendWSPack: ll.imports("SparkAPI", "sendWSPack"),
         },
     },
-    msgbuilder: msgbuilder,
-    packbuilder: packbuilder
+    msgbuilder: importClass('msgbuilder'),
+    packbuilder: importClass('packbuilder')
 }
