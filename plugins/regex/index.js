@@ -179,11 +179,9 @@ regCmd('remwl', (arg, reg, e, reply) => {
     //console.log(spark.mc.getXbox(e.sender.user_id));
     let xb = spark.mc.getXbox(e.user_id);
     if (xb != undefined) {
-        let { success, output } = mc.runcmdEx(`allowlist remove "${xb}"`);
-        if (success) {
-            reply('移除成功', true);
-            spark.mc.remXboxByQid(e.user_id);
-        } else reply(`移除失败:${output}`, true);
+        mc.runcmdEx(`allowlist remove "${xb}"`);
+        reply('移除成功', true);
+        spark.mc.remXboxByQid(e.user_id);
     }
 });
 
