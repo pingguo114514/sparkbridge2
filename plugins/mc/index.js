@@ -59,7 +59,7 @@ function getXbox(qid) {
 }
 
 function addXbox(qid, xbox) {
-    xbox.set(qid, xbox);
+    xboxs.set(qid, xbox);
     _config.updateFile('xbox.json', xboxs.toObject());
 }
 
