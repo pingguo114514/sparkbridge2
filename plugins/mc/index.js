@@ -36,23 +36,23 @@ spark.on("event.telemetry.updateconfig_mc", (plname, K, newV) => {
 
 spark.setOwnProperty('mc', {});
 spark.mc.config = config;
-const eventmitter = new EventEmitter();
+// const eventmitter = new EventEmitter();
 //spark.mc['eventmitter'] = eventmitter;
 
-spark.mc.on = eventmitter.on;
-spark.mc.emit = eventmitter.emit;
+spark.mc.on = mc.listen;
+// spark.mc.emit = eventmitter.emit;
 
-mc.listen('onChat', (p, m) => {
-    spark.mc.emit('onChat', p, m);
-});
+// mc.listen('onChat', (p, m) => {
+//     spark.mc.emit('onChat', p, m);
+// });
 
-mc.listen('onLeft', (p) => {
-    spark.mc.emit('onLeft', p);
-});
+// mc.listen('onLeft', (p) => {
+//     spark.mc.emit('onLeft', p);
+// });
 
-mc.listen('onJoin', (p) => {
-    spark.mc.emit('onJoin', p);
-});
+// mc.listen('onJoin', (p) => {
+//     spark.mc.emit('onJoin', p);
+// });
 
 function getXbox(qid) {
     return xboxs.getByKey(qid);
