@@ -48,14 +48,14 @@ spark.mc.on = mc.listen;
 
 // mc.listen('onLeft', (p) => {
 //     spark.mc.emit('onLeft', p);
-// });
+// });  
 
 // mc.listen('onJoin', (p) => {
 //     spark.mc.emit('onJoin', p);
 // });
 
 function getXbox(qid) {
-    return xboxs.getByKey(qid);
+    return xboxs.getByKey(qid.toString());
 }
 
 function addXbox(qid, xbox) {
@@ -73,7 +73,7 @@ function remXboxByName(xbox) {
 }
 
 function remXboxByQid(qid) {
-    xboxs.deleteByKey(qid);
+    xboxs.deleteByKey(qid.toString());
     _config.updateFile('xbox.json', xboxs.toObject());
 }
 function getQQByXbox(xbox) {
